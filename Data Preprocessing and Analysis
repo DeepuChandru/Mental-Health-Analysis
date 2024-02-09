@@ -1,0 +1,339 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[177]:
+
+
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt 
+import numpy as np 
+import os 
+import pandas as pd
+
+
+# In[178]:
+
+
+df = pd.read_csv("Manual_OSMI_2021.csv")
+df.head()
+
+
+# In[179]:
+
+
+missing_values = df.isnull().sum()
+print("\nNumber of missing values in each column:")
+print(missing_values)
+
+
+# In[180]:
+
+
+unique_value_2 = df[df.columns[1]].unique()
+print("\nUnique values in Number of employees:")
+print(unique_value_2)
+
+
+# In[181]:
+
+
+# Map values in the 2nd column to desired categories
+mapping = {
+    '26-100': 'Less than 100',
+    '500-1000': 'Less than 1000',
+    '100-500': 'Less than 500',
+    'More than 1000': 'More than 1000',
+    '25-Jun': 'Remove',
+    '5-Jan': 'Remove'
+}
+
+df[df.columns[1]] = df[df.columns[1]].replace(mapping)
+
+
+# In[182]:
+
+
+df = df[df[df.columns[1]] != 'Remove']
+
+
+# In[183]:
+
+
+df.head()
+
+
+# In[184]:
+
+
+unique_value_gender = df[df.columns[-2]].unique()
+print("\nUnique values in Number of employees:")
+print(unique_value_gender)
+
+
+# In[185]:
+
+
+mapping = {
+    'Female': 'Female',
+    'male': 'Male',
+    'Male': 'Male',
+    'female': 'Female',
+    'F': 'Female',
+    'f': 'Female',
+    'woman': 'Female',
+    'afab non-binary': 'Remove',
+    'Masculine': 'Remove',
+    'Female (cis)': 'Female',
+    'b': 'Remove',
+    'm': 'Male',
+    'male/he/him': 'Male',
+    'FEMALE':'Female',
+    'M': 'Male',
+    'cis-het male':'Male',
+    'cis male':'Male',
+    'Non-binary':'Remove',
+    'Non-binary/Agender':'Remove',   
+}
+
+df[df.columns[-2]] = df[df.columns[-2]].replace(mapping)
+
+
+# In[186]:
+
+
+df = df[df[df.columns[-2]] != 'Remove']
+
+
+# In[187]:
+
+
+unique_value_gender = df[df.columns[-2]].unique()
+print("\nUnique values in gender:")
+print(unique_value_gender)
+
+
+# In[188]:
+
+
+unique_value_disorder = df[df.columns[9]].unique()
+print("\nUnique values - Mental Disorder:")
+print(unique_value_disorder)
+
+
+# In[189]:
+
+
+# Map values
+mapping = {
+    'Yes': 'Yes',
+    'No': 'No',
+    "Don't Know": 'NA',
+    'Possibly': 'Possibly',  
+}
+
+df[df.columns[1]] = df[df.columns[1]].replace(mapping)
+
+
+# In[190]:
+
+
+# Assuming 'What is your gender?' and 'Do you *currently* have a mental health disorder?' are the correct column names
+mental_disorder_filter = df['Do you *currently* have a mental health disorder?'] == 'Yes'
+gender_counts = df.loc[mental_disorder_filter, 'What is your gender?'].value_counts()
+
+# Check if the Series is not empty
+if not gender_counts.empty:
+    # Bar plot
+    plt.figure(figsize=(8, 6))
+    gender_counts.plot(kind='bar', color=['lightblue', 'lightcoral'])
+    plt.title('Number of Males and Females with Mental Disorders')
+    plt.xlabel('Gender')
+    plt.ylabel('Count')
+    plt.xticks(rotation=0)
+    plt.show()
+else:
+    print("No data to plot.")
+
+
+# In[191]:
+
+
+# Assuming 'What is your gender?' and 'Do you *currently* have a mental health disorder?' are the correct column names
+mental_disorder_filter = df['Do you *currently* have a mental health disorder?'] == 'Yes'
+country_counts = df.loc[mental_disorder_filter, 'What country do you *work* in?'].value_counts()
+
+# Check if the Series is not empty
+if not country_counts.empty:
+    # Pie chart
+    plt.figure(figsize=(7, 7))
+    plt.pie(country_counts, labels=country_counts.index, autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
+    plt.title('Distribution of Mental Disorders Across Countries')
+    plt.show()
+else:
+    print("No data to plot.")
+
+
+# In[192]:
+
+
+unique_value_age = df[df.columns[-3]].unique()
+print("\nUnique values in age:")
+print(unique_value_age)
+
+
+# In[194]:
+
+
+# Define age groups mapping
+age_mapping = {
+    (0, 20): 'less than 20',
+    (21, 30): '20-30',
+    (31, 40): '30-40',
+    (41, 50): '40-50',
+    (51, 60): '50-60',
+    (61, float('inf')): '60 and above'
+}
+
+# Map age values to age groups
+df['What is your age?'] = pd.cut(df['What is your age?'], bins=[0, 20, 30, 40, 50, 60, float('inf')], labels=['less than 20', '20-30', '30-40', '40-50', '50-60', '60 and above'], right=False)
+
+
+# In[199]:
+
+
+# Assuming 'What is your gender?' and 'Do you *currently* have a mental health disorder?' are the correct column names
+mental_disorder_filter = df['Do you *currently* have a mental health disorder?'] == 'Yes'
+age_counts = df.loc[mental_disorder_filter, 'What is your age?'].value_counts()
+
+# Check if the Series is not empty
+if not age_counts.empty:
+    # Bar chart
+    plt.figure(figsize=(12, 8))
+    age_counts.sort_index().plot(kind='bar', color='skyblue')
+    plt.title('Distribution of Mental Disorders based on Age Groups')
+    plt.xlabel('Age Group')
+    plt.ylabel('Count')
+    plt.xticks(rotation=0)
+    plt.show()
+else:
+    print("No data to plot.")
+
+
+# In[204]:
+
+
+# Assuming 'What is your gender?' and 'Do you *currently* have a mental health disorder?' are the correct column names
+mental_disorder_filter = df['Do you *currently* have a mental health disorder?'] == 'Yes'
+
+# Separate data for tech and non-tech companies
+tech_companies = df[df['Is your employer primarily a tech company/organization?'] == 1]
+non_tech_companies = df[df['Is your employer primarily a tech company/organization?'] == 0]
+
+# Count mental disorders for each age group in tech and non-tech companies
+tech_age_counts = tech_companies.loc[mental_disorder_filter, 'What is your age?'].value_counts()
+non_tech_age_counts = non_tech_companies.loc[mental_disorder_filter, 'What is your age?'].value_counts()
+
+# Check if the Series is not empty for tech companies
+if not tech_age_counts.empty:
+    # Bar chart for tech companies
+    plt.figure(figsize=(12, 8))
+    tech_age_counts.sort_index().plot(kind='bar', color='skyblue', position=0, width=0.4, label='Tech Companies')
+    
+# Check if the Series is not empty for non-tech companies
+if not non_tech_age_counts.empty:
+    # Bar chart for non-tech companies
+    non_tech_age_counts.sort_index().plot(kind='bar', color='orange', position=1, width=0.4, label='Non-Tech Companies')
+
+# Adding labels and title
+plt.title('Distribution of Mental Disorders based on Age Groups')
+plt.xlabel('Age Group')
+plt.ylabel('Count')
+plt.xticks(rotation=0)
+plt.legend()
+plt.show()
+
+
+# In[206]:
+
+
+# Assuming 'What is your gender?' and 'Do you *currently* have a mental health disorder?' are the correct column names
+mental_disorder_filter = df['Do you *currently* have a mental health disorder?'] == 'Yes'
+
+# Separate data for tech and non-tech companies
+tech_companies = df[df['Is your employer primarily a tech company/organization?'] == 1]
+non_tech_companies = df[df['Is your employer primarily a tech company/organization?'] == 0]
+
+# Count mental disorders for tech and non-tech companies
+tech_mental_counts = tech_companies[mental_disorder_filter].shape[0]
+non_tech_mental_counts = non_tech_companies[mental_disorder_filter].shape[0]
+
+# Bar chart for tech and non-tech companies
+plt.figure(figsize=(8, 6))
+plt.bar(['Tech Companies', 'Non-Tech Companies'], [tech_mental_counts, non_tech_mental_counts], color=['skyblue', 'orange'])
+plt.title('Distribution of Mental Disorders in Tech and Non-Tech Companies')
+plt.xlabel('Company Type')
+plt.ylabel('Count')
+plt.show()
+
+
+# In[208]:
+
+
+# Assuming 'Mental Health Wellness Program Provided?' is the correct column name
+wellness_program_counts = df['Does your employer provide mental health benefits as part of healthcare coverage?'].value_counts()
+
+# Check if the Series is not empty
+if not wellness_program_counts.empty:
+    # Bar chart
+    plt.figure(figsize=(8, 6))
+    wellness_program_counts.plot(kind='bar', color='skyblue')
+    plt.title('Number of Respondents based on Mental Health Wellness Program')
+    plt.xlabel('Wellness Program Provided')
+    plt.ylabel('Count')
+    plt.xticks(rotation=0)
+    plt.show()
+else:
+    print("No data to plot.")
+
+
+# In[210]:
+
+
+df
+
+
+# In[214]:
+
+
+# Assuming df is your DataFrame
+# Create a dictionary to map current column names to new column names
+column_mapping = {
+    '*Are you self-employed?*': 'Self_Employed',
+    'How many employees does your company or organization have?': 'Number_of_Employees',
+    'Is your employer primarily a tech company/organization?':"Tech/Non-Tech_Company",
+    'Is your primary role within your company related to tech/IT?':"Tech/Non-Tech_Role",
+    'Would you have been willing to discuss your mental health with your coworkers at previous employers?':'Coworker_Discussion_previous_employers',
+    'Does your employer provide mental health benefits as part of healthcare coverage?': 'Health_Coverage',
+    'Would you feel comfortable discussing a mental health issue with your coworkers?': 'Comfortable_Coworker_Discussion',
+    'Describe the conversation you had with your previous employer about your mental health, including their reactions and actions taken to address your mental health issue/questions.' : 'Employer_reactions',
+    'Describe the conversation you had with your previous coworkers about your mental health including their reactions.' : 'coworkers_reactions',
+    'Do you *currently* have a mental health disorder?': 'Mental_Disorder',
+    'Have you had a mental health disorder in the past?': 'Past_Disorder',
+    'Do you have a family history of mental illness?' :'Family_History_Disorder',
+    'Overall, how well do you think the tech industry supports employees with mental health issues?': 'industry_support',
+    'What is your age?': 'Age',
+    'What is your gender?':'Gender',
+    'What country do you *work* in?': 'Country'
+    
+}
+
+# Rename the columns using the dictionary
+df.rename(columns=column_mapping, inplace=True)
+df.head()
+
+
+# In[ ]:
+
+
+
+
